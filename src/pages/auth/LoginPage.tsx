@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Loader2 } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/contexts/AuthContext'
@@ -59,6 +60,18 @@ export function LoginPage() {
 
             <p className="text-center text-xs leading-relaxed text-zinc-400 lg:text-left">
               Sign in with Google to connect your calendars and see every meeting in one place.
+            </p>
+
+            <p className="text-center text-xs leading-relaxed text-zinc-400 lg:text-left">
+              By continuing, you agree to our{' '}
+              <Link to="/terms" className="font-medium text-zinc-500 underline-offset-2 hover:text-[#6835D0] hover:underline">
+                Terms of Service
+              </Link>{' '}
+              and{' '}
+              <Link to="/privacy" className="font-medium text-zinc-500 underline-offset-2 hover:text-[#6835D0] hover:underline">
+                Privacy Policy
+              </Link>
+              .
             </p>
           </div>
         </div>
