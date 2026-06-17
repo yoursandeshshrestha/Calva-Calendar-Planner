@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { differenceInMinutes, format, isToday } from 'date-fns'
+import { format, isToday } from 'date-fns'
 import {
   Check,
   ChevronDown,
@@ -21,29 +21,12 @@ import {
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import type { AttendeeResponseStatus, CalendarEvent, CalendarEventAttendee } from '@/types/calendar'
 import { cn } from '@/lib/utils'
+import { formatDuration, formatTimeRange } from '../utils/format'
 
 const DESCRIPTION_PREVIEW_LENGTH = 140
 
 function stripHtml(html: string) {
   return html.replace(/<[^>]*>/g, '').trim()
-}
-
-function formatDuration(start: Date, end: Date) {
-  const mins = differenceInMinutes(end, start)
-  if (mins < 60) return `${mins} min`
-  const hours = Math.floor(mins / 60)
-  const remainder = mins % 60
-  if (remainder === 0) return hours === 1 ? '1 hr' : `${hours} hr`
-  return `${hours} hr ${remainder} min`
-}
-
-function formatTimeRange(start: Date, end: Date, allDay: boolean) {
-  if (allDay) return 'All day'
-  const samePeriod = format(start, 'a') === format(end, 'a')
-  if (samePeriod) {
-    return `${format(start, 'h')} – ${format(end, 'h:mma').toLowerCase()}`
-  }
-  return `${format(start, 'h:mm a')} – ${format(end, 'h:mm a')}`
 }
 
 function formatReminders(reminders: CalendarEvent['reminders']) {
