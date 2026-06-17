@@ -7,9 +7,11 @@ import { CalendarToolbar } from './components/CalendarToolbar'
 import { EmptyCalendarState } from './components/EmptyCalendarState'
 import { EventDetailPopover } from './components/EventDetailPopover'
 import { TimeGrid } from './components/TimeGrid'
+import { UpcomingEventFloatingCard } from './components/UpcomingEventFloatingCard'
 import { WeekDayHeaders } from './components/WeekDayHeaders'
 import { useCalendarData } from './hooks/useCalendarData'
 import { useOAuthCallback } from './hooks/useOAuthCallback'
+import { useUpcomingEvent } from './hooks/useUpcomingEvent'
 
 export function CalendarPage() {
   const { session, signOut } = useAuth()
@@ -46,6 +48,10 @@ export function CalendarPage() {
     weekEnd,
     accessToken: session?.access_token,
   })
+
+  const { upcomingEvent, now: upcomingNow, loading: upcomingLoading } = useUpcomingEvent(
+    session?.access_token,
+  )
 
   useEffect(() => {
     setEventPopover(null)
@@ -112,6 +118,10 @@ export function CalendarPage() {
         open={!!eventPopover}
         onClose={() => setEventPopover(null)}
       />
+
+      {!upcomingLoading && upcomingEvent && (
+        <UpcomingEventFloatingCard event={upcomingEvent} now={upcomingNow} />
+      )}
     </div>
   )
 }
