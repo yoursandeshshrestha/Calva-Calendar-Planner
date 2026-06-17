@@ -43,13 +43,13 @@ export function CalendarPage() {
     [weekStart],
   )
 
-  const { events, accounts, loading, error, connecting, handleConnect } = useCalendarData({
+  const { events, accounts, loading, eventsLoading, error, connecting, handleConnect } = useCalendarData({
     weekStart,
     weekEnd,
     accessToken: session?.access_token,
   })
 
-  const { upcomingEvent, now: upcomingNow, loading: upcomingLoading } = useUpcomingEvent(
+  const { upcomingEvent, now: upcomingNow } = useUpcomingEvent(
     session?.access_token,
   )
 
@@ -106,7 +106,7 @@ export function CalendarPage() {
         <TimeGrid
           weekDays={weekDays}
           events={events}
-          loading={loading}
+          loading={eventsLoading && events.length === 0}
           selectedEventId={eventPopover?.event.id}
           onEventSelect={handleEventSelect}
         />
@@ -119,7 +119,7 @@ export function CalendarPage() {
         onClose={() => setEventPopover(null)}
       />
 
-      {!upcomingLoading && upcomingEvent && (
+      {upcomingEvent && (
         <UpcomingEventFloatingCard event={upcomingEvent} now={upcomingNow} />
       )}
     </div>

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { addDays, endOfDay } from 'date-fns'
-import { fetchCalendarEvents } from '@/lib/api'
+import { fetchCalendarEventsForAccounts, getConnectedAccounts } from '@/lib/api'
 import type { CalendarEvent } from '@/types/calendar'
+import { mergeAccountEvents } from '../utils/events'
 import { getNextUpcomingEvent } from '../utils/upcoming'
 
 export function useUpcomingEvent(accessToken?: string) {
@@ -20,11 +21,32 @@ export function useUpcomingEvent(accessToken?: string) {
 
     async function load() {
       setLoading(true)
+      setEvents([])
+
       try {
+        const accountList = await getConnectedAccounts()
+        if (cancelled) return
+
+        if (accountList.length === 0) {
+          setEvents([])
+          return
+        }
+
         const timeMin = new Date().toISOString()
         const timeMax = endOfDay(addDays(new Date(), 14)).toISOString()
-        const eventList = await fetchCalendarEvents(timeMin, timeMax)
-        if (!cancelled) setEvents(eventList)
+        const accountColors = Object.fromEntries(accountList.map((a) => [a.id, a.color]))
+
+        await fetchCalendarEventsForAccounts(
+          timeMin,
+          timeMax,
+          accountList.map((account) => account.id),
+          (accountId, accountEvents) => {
+            if (cancelled) return
+            setEvents((previous) =>
+              mergeAccountEvents(previous, accountId, accountEvents, accountColors[accountId]),
+            )
+          },
+        )
       } catch {
         if (!cancelled) setEvents([])
       } finally {

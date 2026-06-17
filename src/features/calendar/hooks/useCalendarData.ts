@@ -1,8 +1,13 @@
 import { useCallback, useEffect, useState } from 'react'
 import { endOfDay, startOfDay } from 'date-fns'
-import { connectGoogleAccount, fetchCalendarEvents, getConnectedAccounts } from '@/lib/api'
+import {
+  connectGoogleAccount,
+  fetchCalendarEventsForAccounts,
+  getConnectedAccounts,
+} from '@/lib/api'
 import type { CalendarEvent } from '@/types/calendar'
 import type { ConnectedAccount } from '@/types/database'
+import { mergeAccountEvents } from '../utils/events'
 
 interface UseCalendarDataOptions {
   weekStart: Date
@@ -14,36 +19,63 @@ export function useCalendarData({ weekStart, weekEnd, accessToken }: UseCalendar
   const [events, setEvents] = useState<CalendarEvent[]>([])
   const [accounts, setAccounts] = useState<ConnectedAccount[]>([])
   const [loading, setLoading] = useState(true)
+  const [eventsLoading, setEventsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [connecting, setConnecting] = useState(false)
 
   useEffect(() => {
+    let cancelled = false
+
     async function load() {
       setLoading(true)
+      setEventsLoading(true)
       setError(null)
+      setEvents([])
+
       try {
-        const [accountList, eventList] = await Promise.all([
-          getConnectedAccounts(),
-          fetchCalendarEvents(
-            startOfDay(weekStart).toISOString(),
-            endOfDay(weekEnd).toISOString(),
-          ),
-        ])
-        const accountColors = Object.fromEntries(accountList.map((a) => [a.id, a.color]))
+        const accountList = await getConnectedAccounts()
+        if (cancelled) return
+
         setAccounts(accountList)
-        setEvents(
-          eventList.map((event) => ({
-            ...event,
-            color: accountColors[event.accountId] ?? event.color,
-          })),
+        setLoading(false)
+
+        if (accountList.length === 0) {
+          setEventsLoading(false)
+          return
+        }
+
+        const timeMin = startOfDay(weekStart).toISOString()
+        const timeMax = endOfDay(weekEnd).toISOString()
+        const accountColors = Object.fromEntries(accountList.map((a) => [a.id, a.color]))
+
+        await fetchCalendarEventsForAccounts(
+          timeMin,
+          timeMax,
+          accountList.map((account) => account.id),
+          (accountId, accountEvents) => {
+            if (cancelled) return
+            setEvents((previous) =>
+              mergeAccountEvents(previous, accountId, accountEvents, accountColors[accountId]),
+            )
+          },
         )
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to load calendar')
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : 'Failed to load calendar')
+        }
       } finally {
-        setLoading(false)
+        if (!cancelled) {
+          setLoading(false)
+          setEventsLoading(false)
+        }
       }
     }
+
     load()
+
+    return () => {
+      cancelled = true
+    }
   }, [weekStart, weekEnd, accessToken])
 
   const handleConnect = useCallback(async () => {
@@ -61,6 +93,7 @@ export function useCalendarData({ weekStart, weekEnd, accessToken }: UseCalendar
     events,
     accounts,
     loading,
+    eventsLoading,
     error,
     connecting,
     handleConnect,

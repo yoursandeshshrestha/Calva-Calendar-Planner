@@ -5,4 +5,4 @@ export {
   syncLoginAccount,
 } from './accounts'
 
-export { fetchCalendarEvents } from './calendar'
+export { fetchCalendarEvents, fetchCalendarEventsForAccounts } from './calendar'
