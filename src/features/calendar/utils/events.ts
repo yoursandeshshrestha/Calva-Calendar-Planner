@@ -20,3 +20,26 @@ export function mergeAccountEvents(
 
   return sortCalendarEvents([...withoutAccount, ...nextEvents])
 }
+
+function eventKey(event: Pick<CalendarEvent, 'accountId' | 'id'>) {
+  return `${event.accountId}:${event.id}`
+}
+
+export function mergeEventsById(
+  previous: CalendarEvent[],
+  incoming: CalendarEvent[],
+  accountColor?: string,
+) {
+  if (incoming.length === 0) return previous
+
+  const byKey = new Map<string, CalendarEvent>()
+  for (const event of previous) byKey.set(eventKey(event), event)
+  for (const event of incoming) {
+    byKey.set(eventKey(event), {
+      ...event,
+      color: accountColor ?? event.color,
+    })
+  }
+
+  return sortCalendarEvents([...byKey.values()])
+}

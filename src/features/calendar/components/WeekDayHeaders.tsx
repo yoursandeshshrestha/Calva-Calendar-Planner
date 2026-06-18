@@ -1,7 +1,7 @@
 import { format, isToday } from 'date-fns'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import { GRID_BORDER, TIME_GUTTER_WIDTH } from '../constants'
+import { DAY_COLUMN_MIN_WIDTH, GRID_BORDER, TIME_GUTTER_WIDTH } from '../constants'
 
 interface WeekDayHeadersProps {
   weekDays: Date[]
@@ -12,7 +12,7 @@ export function WeekDayHeaders({ weekDays, loading }: WeekDayHeadersProps) {
   return (
     <div className={cn('flex shrink-0 border-b bg-white dark:bg-background', GRID_BORDER)}>
       <div
-        className={cn('shrink-0 border-r', GRID_BORDER)}
+        className={cn('sticky left-0 z-10 shrink-0 border-r bg-white dark:bg-background', GRID_BORDER)}
         style={{ width: TIME_GUTTER_WIDTH }}
       />
       {weekDays.map((day) => {
@@ -20,7 +20,11 @@ export function WeekDayHeaders({ weekDays, loading }: WeekDayHeadersProps) {
         return (
           <div
             key={day.toISOString()}
-            className={cn('flex flex-1 flex-col items-center border-r py-2 last:border-r-0', GRID_BORDER)}
+            className={cn(
+              'flex flex-1 shrink-0 flex-col items-center border-r py-2 last:border-r-0',
+              GRID_BORDER,
+            )}
+            style={{ minWidth: DAY_COLUMN_MIN_WIDTH }}
           >
             {loading ? (
               <>

@@ -6,6 +6,7 @@ export const TOP_PADDING_HEIGHT = TOP_PADDING_ROWS * HOUR_HEIGHT
 export const GRID_HEIGHT = (DAY_END_HOUR - DAY_START_HOUR) * HOUR_HEIGHT
 export const TOTAL_GRID_HEIGHT = TOP_PADDING_HEIGHT + GRID_HEIGHT
 export const TIME_GUTTER_WIDTH = 64
+export const DAY_COLUMN_MIN_WIDTH = 150
 export const EVENT_GAP = 2
 
 export const GRID_BORDER = 'border-gray-200 dark:border-gray-800'

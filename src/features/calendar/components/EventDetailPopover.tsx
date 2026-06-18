@@ -21,7 +21,7 @@ import {
 import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/popover'
 import type { AttendeeResponseStatus, CalendarEvent, CalendarEventAttendee } from '@/types/calendar'
 import { cn } from '@/lib/utils'
-import { formatDuration, formatTimeRange } from '../utils/format'
+import { formatDuration, formatTimeRange, getMeetLinkWithAuth } from '../utils/format'
 
 const DESCRIPTION_PREVIEW_LENGTH = 140
 
@@ -353,7 +353,11 @@ export function EventDetailPopover({
                 asChild
                 className="h-9 w-full cursor-pointer rounded-xl bg-[#6835D0] text-[13px] font-medium text-white hover:bg-[#5628B8]"
               >
-                <a href={event.meetLink} target="_blank" rel="noopener noreferrer">
+                <a
+                  href={getMeetLinkWithAuth(event.meetLink, event.accountEmail)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   <Video className="mr-1.5 size-3.5" />
                   Join meeting
                 </a>

@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useRef } from 'react'
-import { format, isSameDay } from 'date-fns'
+import { useMemo } from 'react'
+import { format } from 'date-fns'
 import type { CalendarEvent } from '@/types/calendar'
 import { cn } from '@/lib/utils'
 import {
+  DAY_COLUMN_MIN_WIDTH,
   DAY_END_HOUR,
   DAY_START_HOUR,
   EVENT_GAP,
@@ -13,7 +14,7 @@ import {
   TOP_PADDING_ROWS,
   TOTAL_GRID_HEIGHT,
 } from '../constants'
-import { getFirstEventScrollTop, layoutDayEvents } from '../utils/layout'
+import { layoutDayEvents } from '../utils/layout'
 import { DayColumnShimmer } from './DayColumnShimmer'
 import { TimedEventBlock } from './TimedEventBlock'
 
@@ -32,40 +33,36 @@ export function TimeGrid({
   selectedEventId,
   onEventSelect,
 }: TimeGridProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-
   const timeSlots = useMemo(
     () => Array.from({ length: DAY_END_HOUR - DAY_START_HOUR }, (_, i) => DAY_START_HOUR + i),
     [],
   )
 
-  const firstEventScrollTop = useMemo(() => getFirstEventScrollTop(events), [events])
+  const eventsByDay = useMemo(() => {
+    const map = new Map<string, CalendarEvent[]>()
+    for (const event of events) {
+      const key = format(new Date(event.start), 'yyyy-MM-dd')
+      const bucket = map.get(key)
+      if (bucket) bucket.push(event)
+      else map.set(key, [event])
+    }
+    return map
+  }, [events])
 
-  useEffect(() => {
-    if (loading || firstEventScrollTop === null) return
-    const el = scrollContainerRef.current
-    if (!el) return
-    requestAnimationFrame(() => {
-      el.scrollTop = firstEventScrollTop
-    })
-  }, [loading, firstEventScrollTop])
-
-  const eventsForDay = (day: Date) =>
-    events.filter((event) => isSameDay(new Date(event.start), day))
+  const eventsForDay = (day: Date) => eventsByDay.get(format(day, 'yyyy-MM-dd')) ?? []
 
   return (
     <div
-      ref={scrollContainerRef}
-      className="flex-1 overflow-y-auto overflow-x-hidden bg-white dark:bg-background"
+      className="relative flex bg-white dark:bg-background"
+      style={{ height: TOTAL_GRID_HEIGHT }}
     >
       <div
-        className="relative flex min-w-[720px] bg-white dark:bg-background"
-        style={{ height: TOTAL_GRID_HEIGHT }}
+        className={cn(
+          'sticky left-0 z-20 shrink-0 border-r bg-white dark:bg-background',
+          GRID_BORDER,
+        )}
+        style={{ width: TIME_GUTTER_WIDTH }}
       >
-        <div
-          className={cn('relative shrink-0 border-r bg-white dark:bg-background', GRID_BORDER)}
-          style={{ width: TIME_GUTTER_WIDTH }}
-        >
           {Array.from({ length: TOP_PADDING_ROWS }).map((_, i) => (
             <div key={`pad-${i}`} style={{ height: HOUR_HEIGHT }} />
           ))}
@@ -87,8 +84,15 @@ export function TimeGrid({
           return (
             <div
               key={day.toISOString()}
-              className={cn('relative flex-1 overflow-hidden border-r last:border-r-0', GRID_BORDER)}
-              style={{ height: TOTAL_GRID_HEIGHT, ...HOUR_GRID_BACKGROUND }}
+              className={cn(
+                'relative flex-1 shrink-0 overflow-hidden border-r last:border-r-0',
+                GRID_BORDER,
+              )}
+              style={{
+                height: TOTAL_GRID_HEIGHT,
+                minWidth: DAY_COLUMN_MIN_WIDTH,
+                ...HOUR_GRID_BACKGROUND,
+              }}
             >
               {loading ? (
                 <DayColumnShimmer />
@@ -126,7 +130,6 @@ export function TimeGrid({
             </div>
           )
         })}
-      </div>
     </div>
   )
 }

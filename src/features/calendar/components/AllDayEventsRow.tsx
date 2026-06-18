@@ -2,6 +2,7 @@ import { isSameDay } from 'date-fns'
 import { Video } from 'lucide-react'
 import type { CalendarEvent } from '@/types/calendar'
 import { cn } from '@/lib/utils'
+import { DAY_COLUMN_MIN_WIDTH, TIME_GUTTER_WIDTH } from '../constants'
 import { getEventAppearance } from '../utils/appearance'
 import { getEventSubtitle } from '../utils/format'
 
@@ -59,8 +60,8 @@ export function AllDayEventsRow({
   return (
     <div className="flex shrink-0 border-b border-gray-200 bg-white dark:border-gray-800 dark:bg-background">
       <div
-        className="flex shrink-0 items-start justify-end border-r border-gray-200 pr-2 pt-1.5 dark:border-gray-800"
-        style={{ width: 64 }}
+        className="sticky left-0 z-10 flex shrink-0 items-start justify-end border-r border-gray-200 bg-white pr-2 pt-1.5 dark:border-gray-800 dark:bg-background"
+        style={{ width: TIME_GUTTER_WIDTH }}
       >
         <span className="text-[10px] text-muted-foreground">all-day</span>
       </div>
@@ -69,7 +70,8 @@ export function AllDayEventsRow({
         return (
           <div
             key={day.toISOString()}
-            className="flex min-h-7 flex-1 flex-col gap-1.5 border-r border-gray-200 p-1.5 last:border-r-0 dark:border-gray-800"
+            className="flex min-h-7 flex-1 shrink-0 flex-col gap-1.5 border-r border-gray-200 p-1.5 last:border-r-0 dark:border-gray-800"
+            style={{ minWidth: DAY_COLUMN_MIN_WIDTH }}
           >
             {dayAllDay.map((event) => (
               <AllDayEventPill
